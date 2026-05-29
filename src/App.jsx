@@ -46,8 +46,35 @@ function App() {
     { id: 4, title: 'Challenge Hornet', time: '5:00 PM', completed: false, badge: 'red' },
   ]);
 
+  const BOSSES = [
+    'False Knight', 'Hornet', 'Mantis Lords', 'Soul Master', 'The Hollow Knight', 'The Radiance', 'Lace'
+  ];
+
+  const [currentBossIndex, setCurrentBossIndex] = useState(0);
+  const [bossDamage, setBossDamage] = useState(10); // 10 points for initial completed task
+
+  useEffect(() => {
+    if (bossDamage >= 150 && currentBossIndex < BOSSES.length - 1) {
+      setCurrentBossIndex(prev => prev + 1);
+      setBossDamage(prev => prev - 150);
+    }
+  }, [bossDamage, currentBossIndex]);
+
+  const currentBoss = BOSSES[currentBossIndex];
+  const isMaxLevel = currentBossIndex === BOSSES.length - 1 && bossDamage >= 150;
+  const displayDamage = isMaxLevel ? 150 : Math.min(bossDamage, 150);
+  const percentage = isMaxLevel ? 100 : (displayDamage / 150) * 100;
+
   const toggleTask = (id) => {
-    setTasks(tasks.map(t => t.id === id ? { ...t, completed: !t.completed } : t));
+    setTasks(tasks.map(t => {
+      if (t.id === id) {
+        const isCompleting = !t.completed;
+        let points = t.badge === 'red' ? 30 : t.badge === 'orange' ? 20 : 10;
+        setBossDamage(prev => Math.max(0, prev + (isCompleting ? points : -points)));
+        return { ...t, completed: isCompleting };
+      }
+      return t;
+    }));
   };
 
   const cyclePriority = (id) => {
@@ -167,6 +194,40 @@ function App() {
           <div className="dashboard-grid">
             {/* Left Column */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+
+              {/* Boss Challenge */}
+              <section className="glass-panel" style={{ padding: '2rem' }}>
+                <div className="card-header">
+                  <h3 className="card-title">Weekly Boss Challenge</h3>
+                  <span className="badge red">Combat</span>
+                </div>
+                
+                <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
+                  <div style={{ fontSize: '1.2rem', marginBottom: '0.5rem', color: 'var(--accent-red)' }}>Current Target</div>
+                  <div style={{ fontSize: '2rem', fontFamily: 'var(--font-heading)', textShadow: '0 0 10px var(--accent-glow-red)' }}>
+                    {isMaxLevel ? 'All Bosses Defeated!' : currentBoss}
+                  </div>
+                </div>
+
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', fontSize: '0.9rem', color: 'var(--text-muted)' }}>
+                    <span>{isMaxLevel ? 'MAX' : `${displayDamage} / 150 Points`}</span>
+                    <span>Level {currentBossIndex + 1}</span>
+                  </div>
+                  <div style={{ height: '12px', background: 'rgba(0,0,0,0.5)', borderRadius: '6px', overflow: 'hidden', border: '1px solid var(--border-color)' }}>
+                    <div style={{ 
+                      height: '100%', 
+                      width: `${percentage}%`, 
+                      background: 'var(--accent-red)',
+                      boxShadow: '0 0 10px var(--accent-glow-red)',
+                      transition: 'width 0.5s ease'
+                    }}></div>
+                  </div>
+                  <div style={{ marginTop: '1rem', fontSize: '0.8rem', color: 'var(--text-muted)', textAlign: 'center' }}>
+                    Complete quests to deal damage! (High: 30 | Med: 20 | Low: 10)
+                  </div>
+                </div>
+              </section>
               
               {/* Task Board */}
               <section className="glass-panel" style={{ padding: '2rem' }}>
