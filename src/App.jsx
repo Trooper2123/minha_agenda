@@ -17,33 +17,72 @@ const Icons = {
 };
 
 function App() {
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const today = new Date();
+  const currentMonth = today.toLocaleString('en-US', { month: 'long' });
+  const currentYear = today.getFullYear();
+  const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+  const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1).getDay();
+  const currentDay = today.getDate();
+  const emptySlots = Array.from({ length: firstDayOfMonth }, (_, i) => i);
+  const days = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+  const dates = Array.from({ length: daysInMonth }, (_, i) => i + 1);
   
+  // Format YYYY-MM-DD for date input
+  const todayDateString = new Date(today.getTime() - (today.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+
+  const [activeTab, setActiveTab] = useState('dashboard');
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [newTask, setNewTask] = useState({ title: '', time: '', badge: 'blue' });
+  const [isCalendarModalOpen, setIsCalendarModalOpen] = useState(false);
+  const [isDashboardModalOpen, setIsDashboardModalOpen] = useState(false);
+  const [maxWeeklyStats, setMaxWeeklyStats] = useState({
+    points: 450,
+    date: '2026-05-15'
+  });
+  const [newTask, setNewTask] = useState({ title: '', date: todayDateString, time: '', badge: 'blue' });
 
   const handleAddTask = (e) => {
     e.preventDefault();
-    if (!newTask.title.trim()) return;
+    if (!newTask.title.trim() || !newTask.date || !newTask.time) {
+      alert("Please fill in all fields.");
+      return;
+    }
+    
+    const taskDateTime = new Date(`${newTask.date}T${newTask.time}`);
+    const now = new Date();
+    
+    if (taskDateTime - now < 30 * 60 * 1000) {
+      alert("A Quest não pode ser criada com menos de 30 minutos de antecedência.");
+      return;
+    }
+
+    const formatTime12h = (time24) => {
+      const [h, m] = time24.split(':');
+      let hours = parseInt(h, 10);
+      const ampm = hours >= 12 ? 'PM' : 'AM';
+      hours = hours % 12 || 12;
+      return `${hours}:${m} ${ampm}`;
+    };
     
     const newTaskObj = {
       id: Date.now(),
       title: newTask.title,
-      time: newTask.time || '12:00 PM',
+      time: formatTime12h(newTask.time),
+      date: taskDateTime.getDate(),
+      fullDate: newTask.date,
       completed: false,
       badge: newTask.badge,
     };
     
     setTasks([...tasks, newTaskObj]);
     setIsModalOpen(false);
-    setNewTask({ title: '', time: '', badge: 'blue' });
+    setNewTask({ title: '', date: todayDateString, time: '', badge: 'blue' });
   };
 
   const [tasks, setTasks] = useState([
-    { id: 1, title: 'Defeat the False Knight', time: '10:00 AM', completed: true, badge: 'blue' },
-    { id: 2, title: 'Explore City of Tears', time: '1:00 PM', completed: false, badge: 'blue' },
-    { id: 3, title: 'Gather 500 Geo', time: '3:30 PM', completed: false, badge: 'orange' },
-    { id: 4, title: 'Challenge Hornet', time: '5:00 PM', completed: false, badge: 'red' },
+    { id: 1, title: 'Defeat the False Knight', time: '10:00 AM', date: currentDay, completed: true, badge: 'blue' },
+    { id: 2, title: 'Explore City of Tears', time: '1:00 PM', date: currentDay, completed: false, badge: 'blue' },
+    { id: 3, title: 'Gather 500 Geo', time: '3:30 PM', date: (currentDay % daysInMonth) + 1, completed: false, badge: 'orange' },
+    { id: 4, title: 'Challenge Hornet', time: '5:00 PM', date: ((currentDay + 2) % daysInMonth) + 1, completed: false, badge: 'red' },
   ]);
 
   const BOSSES = [
@@ -143,9 +182,6 @@ function App() {
     return `${m}:${s}`;
   };
 
-  const days = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
-  const dates = Array.from({ length: 31 }, (_, i) => i + 1);
-
   return (
     <>
       <div className="glow-orb orb-1"></div>
@@ -164,13 +200,13 @@ function App() {
           </div>
 
           <nav className="nav-links">
-            <a className={`nav-link ${activeTab === 'dashboard' ? 'active' : ''}`} onClick={() => setActiveTab('dashboard')}>
+            <a className={`nav-link`} onClick={() => setIsDashboardModalOpen(true)} style={{cursor: 'pointer'}}>
               <Icons.Home /> Dashboard
             </a>
             <a className={`nav-link ${activeTab === 'tasks' ? 'active' : ''}`} onClick={() => setActiveTab('tasks')}>
               <Icons.CheckSquare /> Tasks
             </a>
-            <a className={`nav-link ${activeTab === 'calendar' ? 'active' : ''}`} onClick={() => setActiveTab('calendar')}>
+            <a className={`nav-link`} onClick={() => setIsCalendarModalOpen(true)} style={{cursor: 'pointer'}}>
               <Icons.Calendar /> Calendar
             </a>
             <a className={`nav-link ${activeTab === 'settings' ? 'active' : ''}`} onClick={() => setActiveTab('settings')}>
@@ -308,7 +344,7 @@ function App() {
               {/* Mini Calendar */}
               <section className="glass-panel" style={{ padding: '1.5rem' }}>
                 <div className="card-header" style={{ marginBottom: '1rem', paddingBottom: '0.5rem' }}>
-                  <h3 className="card-title" style={{ fontSize: '1.1rem' }}>October 2026</h3>
+                  <h3 className="card-title" style={{ fontSize: '1.1rem' }}>{currentMonth} {currentYear}</h3>
                 </div>
                 
                 <div className="calendar-grid">
@@ -316,22 +352,29 @@ function App() {
                     <div key={day} className="calendar-day-header">{day}</div>
                   ))}
                   
-                  {/* Empty slots for month start */}
-                  <div className="calendar-day" style={{ opacity: 0 }}></div>
-                  <div className="calendar-day" style={{ opacity: 0 }}></div>
-                  <div className="calendar-day" style={{ opacity: 0 }}></div>
-                  
-                  {dates.map(date => (
-                    <div 
-                      key={date} 
-                      className={`calendar-day 
-                        ${date === 15 ? 'active' : ''} 
-                        ${[12, 18, 22].includes(date) ? 'has-event' : ''}`
-                      }
-                    >
-                      {date}
-                    </div>
+                  {emptySlots.map(slot => (
+                    <div key={`mini-empty-${slot}`} className="calendar-day" style={{ opacity: 0 }}></div>
                   ))}
+                  
+                  {dates.map(date => {
+                    const tasksOnDate = tasks.filter(t => t.date === date);
+                    return (
+                      <div 
+                        key={date} 
+                        className={`calendar-day ${date === currentDay ? 'active' : ''}`}
+                        style={{ position: 'relative' }}
+                      >
+                        {date}
+                        {tasksOnDate.length > 0 && (
+                          <div style={{ position: 'absolute', bottom: '2px', display: 'flex', gap: '2px' }}>
+                            {tasksOnDate.slice(0, 3).map(t => (
+                              <div key={t.id} style={{ width: '4px', height: '4px', borderRadius: '50%', background: `var(--accent-${t.badge})` }} />
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               </section>
 
@@ -390,13 +433,22 @@ function App() {
                 />
               </div>
               <div className="form-group">
+                <label>Date</label>
+                <input 
+                  type="date" 
+                  className="form-input" 
+                  value={newTask.date}
+                  min={todayDateString}
+                  onChange={(e) => setNewTask({...newTask, date: e.target.value})}
+                />
+              </div>
+              <div className="form-group">
                 <label>Time</label>
                 <input 
-                  type="text" 
+                  type="time" 
                   className="form-input" 
                   value={newTask.time}
                   onChange={(e) => setNewTask({...newTask, time: e.target.value})}
-                  placeholder="e.g. 10:00 AM"
                 />
               </div>
               <div className="form-group">
@@ -416,6 +468,101 @@ function App() {
                 <button type="submit" className="btn btn-primary">Add Quest</button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Calendar Modal */}
+      {isCalendarModalOpen && (
+        <div className="modal-overlay" onClick={() => setIsCalendarModalOpen(false)}>
+          <div className="modal-content" style={{ maxWidth: '600px' }} onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3 className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <Icons.Calendar /> {currentMonth} {currentYear}
+              </h3>
+              <button className="btn" style={{ border: 'none', padding: '0.5rem' }} onClick={() => setIsCalendarModalOpen(false)}>✕</button>
+            </div>
+            
+            <div className="calendar-grid" style={{ gridTemplateColumns: 'repeat(7, 1fr)', gap: '1rem', marginTop: '2rem' }}>
+              {days.map(day => (
+                <div key={day} className="calendar-day-header" style={{ fontSize: '1rem' }}>{day}</div>
+              ))}
+              
+              {emptySlots.map(slot => (
+                <div key={`modal-empty-${slot}`} className="calendar-day" style={{ opacity: 0 }}></div>
+              ))}
+              
+              {dates.map(date => {
+                const tasksOnDate = tasks.filter(t => t.date === date);
+                
+                return (
+                  <div 
+                    key={date} 
+                    className={`calendar-day ${date === currentDay ? 'active' : ''}`}
+                    style={{ position: 'relative', display: 'flex', flexDirection: 'column', gap: '2px', fontSize: '1.2rem', padding: '10px' }}
+                  >
+                    {date}
+                    {tasksOnDate.length > 0 && (
+                      <div style={{ display: 'flex', gap: '4px', position: 'absolute', bottom: '8px' }}>
+                        {tasksOnDate.map(t => (
+                          <div 
+                            key={t.id} 
+                            style={{ 
+                              width: '8px', 
+                              height: '8px', 
+                              borderRadius: '50%', 
+                              background: `var(--accent-${t.badge})`,
+                              boxShadow: `0 0 5px var(--accent-glow-${t.badge})`
+                            }} 
+                            title={t.title}
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Dashboard / Achievements Modal */}
+      {isDashboardModalOpen && (
+        <div className="modal-overlay" onClick={() => setIsDashboardModalOpen(false)}>
+          <div className="modal-content" style={{ maxWidth: '600px' }} onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3 className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <Icons.Home /> Hall of Gods
+              </h3>
+              <button className="btn" style={{ border: 'none', padding: '0.5rem' }} onClick={() => setIsDashboardModalOpen(false)}>✕</button>
+            </div>
+            
+            <div style={{ marginTop: '1.5rem' }}>
+              <div style={{ marginBottom: '2rem', padding: '1.5rem', background: 'rgba(0,0,0,0.3)', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+                <h4 style={{ color: 'var(--accent-orange)', marginBottom: '0.5rem' }}>Weekly Record</h4>
+                <div style={{ fontSize: '2rem', fontFamily: 'var(--font-heading)', color: 'var(--text-main)', textShadow: '0 0 10px var(--accent-glow-orange)' }}>
+                  {maxWeeklyStats.points} Points
+                </div>
+                <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginTop: '0.5rem' }}>
+                  Achieved on: {new Date(maxWeeklyStats.date).toLocaleDateString()}
+                </div>
+              </div>
+
+              <h4 style={{ color: 'var(--accent-blue)', marginBottom: '1rem' }}>Defeated Bosses</h4>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: '300px', overflowY: 'auto', paddingRight: '10px' }}>
+                {currentBossIndex === 0 && !isMaxLevel ? (
+                  <div style={{ color: 'var(--text-muted)', fontStyle: 'italic', padding: '1rem', textAlign: 'center' }}>No bosses defeated yet. Keep fighting!</div>
+                ) : (
+                  BOSSES.slice(0, isMaxLevel ? BOSSES.length : currentBossIndex).map((boss, idx) => (
+                    <div key={idx} style={{ padding: '1rem', background: 'rgba(0,0,0,0.2)', borderRadius: '8px', border: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontSize: '1.1rem', color: 'var(--text-main)' }}>{boss}</span>
+                      <span className="badge blue">Defeated</span>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
           </div>
         </div>
       )}
