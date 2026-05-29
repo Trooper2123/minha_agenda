@@ -19,6 +19,26 @@ const Icons = {
 function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
   
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [newTask, setNewTask] = useState({ title: '', time: '', badge: 'blue' });
+
+  const handleAddTask = (e) => {
+    e.preventDefault();
+    if (!newTask.title.trim()) return;
+    
+    const newTaskObj = {
+      id: Date.now(),
+      title: newTask.title,
+      time: newTask.time || '12:00 PM',
+      completed: false,
+      badge: newTask.badge,
+    };
+    
+    setTasks([...tasks, newTaskObj]);
+    setIsModalOpen(false);
+    setNewTask({ title: '', time: '', badge: 'blue' });
+  };
+
   const [tasks, setTasks] = useState([
     { id: 1, title: 'Defeat the False Knight', time: '10:00 AM', completed: true, badge: 'blue' },
     { id: 2, title: 'Explore City of Tears', time: '1:00 PM', completed: false, badge: 'blue' },
@@ -139,7 +159,7 @@ function App() {
               <h2 style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>Greetings, Traveler</h2>
               <p style={{ color: 'var(--text-muted)' }}>Here is your schedule for this cycle.</p>
             </div>
-            <button className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <button className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }} onClick={() => setIsModalOpen(true)}>
               <Icons.CheckSquare /> New Task
             </button>
           </header>
@@ -287,6 +307,57 @@ function App() {
           </div>
         </main>
       </div>
+
+      {/* Modal */}
+      {isModalOpen && (
+        <div className="modal-overlay" onClick={() => setIsModalOpen(false)}>
+          <div className="modal-content" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3 className="card-title">Create New Quest</h3>
+              <button className="btn" style={{ border: 'none', padding: '0.5rem' }} onClick={() => setIsModalOpen(false)}>✕</button>
+            </div>
+            <form onSubmit={handleAddTask}>
+              <div className="form-group">
+                <label>Quest Title</label>
+                <input 
+                  type="text" 
+                  className="form-input" 
+                  value={newTask.title}
+                  onChange={(e) => setNewTask({...newTask, title: e.target.value})}
+                  placeholder="e.g. Defeat the Radiance"
+                  autoFocus
+                />
+              </div>
+              <div className="form-group">
+                <label>Time</label>
+                <input 
+                  type="text" 
+                  className="form-input" 
+                  value={newTask.time}
+                  onChange={(e) => setNewTask({...newTask, time: e.target.value})}
+                  placeholder="e.g. 10:00 AM"
+                />
+              </div>
+              <div className="form-group">
+                <label>Priority</label>
+                <select 
+                  className="form-select"
+                  value={newTask.badge}
+                  onChange={(e) => setNewTask({...newTask, badge: e.target.value})}
+                >
+                  <option value="blue">Low (Blue)</option>
+                  <option value="orange">Medium (Orange)</option>
+                  <option value="red">High (Red)</option>
+                </select>
+              </div>
+              <div className="form-actions">
+                <button type="button" className="btn" onClick={() => setIsModalOpen(false)}>Cancel</button>
+                <button type="submit" className="btn btn-primary">Add Quest</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </>
   );
 }
