@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useGoogleLogin } from '@react-oauth/google';
 import './index.css';
 
 // Simple SVG Icons
@@ -17,6 +18,18 @@ const Icons = {
 };
 
 function App() {
+  const [googleConnected, setGoogleConnected] = useState(false);
+
+  const loginWithGoogle = useGoogleLogin({
+    onSuccess: tokenResponse => {
+      console.log('Google login success:', tokenResponse);
+      setGoogleConnected(true);
+      // In the future you can use this token to fetch events or emails!
+    },
+    onError: error => console.error('Google login failed:', error),
+    scope: 'https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/gmail.readonly',
+  });
+
   const today = new Date();
   const currentMonth = today.toLocaleString('en-US', { month: 'long' });
   const currentYear = today.getFullYear();
@@ -348,8 +361,8 @@ function App() {
                 </div>
                 
                 <div className="calendar-grid">
-                  {days.map(day => (
-                    <div key={day} className="calendar-day-header">{day}</div>
+                  {days.map((day, idx) => (
+                    <div key={`${day}-${idx}`} className="calendar-day-header">{day}</div>
                   ))}
                   
                   {emptySlots.map(slot => (
@@ -390,9 +403,11 @@ function App() {
                   </div>
                   <div className="integration-info">
                     <div className="integration-name">Google Mail</div>
-                    <div className="integration-status">Not connected</div>
+                    <div className="integration-status">{googleConnected ? 'Connected' : 'Not connected'}</div>
                   </div>
-                  <button className="btn" style={{ padding: '0.25rem 0.5rem', fontSize: '0.8rem' }}>Connect</button>
+                  <button className="btn" style={{ padding: '0.25rem 0.5rem', fontSize: '0.8rem' }} onClick={() => loginWithGoogle()}>
+                    {googleConnected ? 'Reconnect' : 'Connect'}
+                  </button>
                 </div>
 
                 <div className="integration-card">
@@ -401,9 +416,11 @@ function App() {
                   </div>
                   <div className="integration-info">
                     <div className="integration-name">Google Calendar</div>
-                    <div className="integration-status">Not connected</div>
+                    <div className="integration-status">{googleConnected ? 'Connected' : 'Not connected'}</div>
                   </div>
-                  <button className="btn" style={{ padding: '0.25rem 0.5rem', fontSize: '0.8rem' }}>Connect</button>
+                  <button className="btn" style={{ padding: '0.25rem 0.5rem', fontSize: '0.8rem' }} onClick={() => loginWithGoogle()}>
+                    {googleConnected ? 'Reconnect' : 'Connect'}
+                  </button>
                 </div>
               </section>
 
@@ -484,8 +501,8 @@ function App() {
             </div>
             
             <div className="calendar-grid" style={{ gridTemplateColumns: 'repeat(7, 1fr)', gap: '1rem', marginTop: '2rem' }}>
-              {days.map(day => (
-                <div key={day} className="calendar-day-header" style={{ fontSize: '1rem' }}>{day}</div>
+              {days.map((day, idx) => (
+                <div key={`${day}-${idx}`} className="calendar-day-header" style={{ fontSize: '1rem' }}>{day}</div>
               ))}
               
               {emptySlots.map(slot => (
