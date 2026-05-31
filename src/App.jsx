@@ -24,7 +24,9 @@ function App() {
     onSuccess: tokenResponse => {
       console.log('Google login success:', tokenResponse);
       setGoogleConnected(true);
-      // In the future you can use this token to fetch events or emails!
+      if (window.fetchGoogleEvents) {
+        window.fetchGoogleEvents(tokenResponse.access_token);
+      }
     },
     onError: error => console.error('Google login failed:', error),
     scope: 'https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/gmail.readonly',
@@ -97,6 +99,55 @@ function App() {
     { id: 3, title: 'Gather 500 Geo', time: '3:30 PM', date: (currentDay % daysInMonth) + 1, completed: false, badge: 'orange' },
     { id: 4, title: 'Challenge Hornet', time: '5:00 PM', date: ((currentDay + 2) % daysInMonth) + 1, completed: false, badge: 'red' },
   ]);
+
+  window.fetchGoogleEvents = async (accessToken) => {
+    try {
+      const now = new Date();
+      const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0).toISOString();
+      const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59).toISOString();
+      
+      const res = await fetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin=${encodeURIComponent(startOfDay)}&timeMax=${encodeURIComponent(endOfDay)}&singleEvents=true&orderBy=startTime`, {
+        headers: { Authorization: `Bearer ${accessToken}` }
+      });
+      const data = await res.json();
+      
+      if (data.items) {
+        const newTasks = data.items.map(event => {
+          const isHighPriority = event.description?.includes('http') || event.location?.includes('http') || event.hangoutLink;
+          let eventTime = 'All Day';
+          let eventDate = currentDay;
+          if (event.start.dateTime) {
+            const dt = new Date(event.start.dateTime);
+            let h = dt.getHours();
+            const m = dt.getMinutes().toString().padStart(2, '0');
+            const ampm = h >= 12 ? 'PM' : 'AM';
+            h = h % 12 || 12;
+            eventTime = `${h}:${m} ${ampm}`;
+            eventDate = dt.getDate();
+          }
+          return {
+            id: event.id || Date.now() + Math.random(),
+            title: event.summary || 'Sem Título',
+            time: eventTime,
+            date: eventDate,
+            fullDate: event.start.dateTime || event.start.date || todayDateString,
+            completed: false,
+            badge: isHighPriority ? 'red' : 'blue',
+          };
+        });
+
+        setTasks(prev => {
+          const existingIds = new Set(prev.map(t => t.id));
+          const filteredNew = newTasks.filter(t => !existingIds.has(t.id));
+          return [...prev, ...filteredNew];
+        });
+        
+        alert(`Google Calendar conectado! Foram importados ${newTasks.length} eventos para hoje.`);
+      }
+    } catch (err) {
+      console.error('Failed to fetch events:', err);
+    }
+  };
 
   const BOSSES = [
     'False Knight', 'Hornet', 'Mantis Lords', 'Soul Master', 'The Hollow Knight', 'The Radiance', 'Lace'
