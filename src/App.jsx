@@ -634,15 +634,15 @@ function App() {
         </div>
       )}
 
-      {/* Dashboard / Achievements Modal */}
-      {isDashboardModalOpen && (
-        <div className="modal-overlay" onClick={() => setIsDashboardModalOpen(false)}>
+      {/* Tasks / Hall of Gods Modal */}
+      {isTaskModalOpen && (
+        <div className="modal-overlay" onClick={() => setIsTaskModalOpen(false)}>
           <div className="modal-content" style={{ maxWidth: '600px' }} onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <h3 className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <Icons.Home /> Hall of Gods
               </h3>
-              <button className="btn" style={{ border: 'none', padding: '0.5rem' }} onClick={() => setIsDashboardModalOpen(false)}>✕</button>
+              <button className="btn" style={{ border: 'none', padding: '0.5rem' }} onClick={() => setIsTaskModalOpen(false)}>✕</button>
             </div>
 
             <div style={{ marginTop: '1.5rem' }}>
