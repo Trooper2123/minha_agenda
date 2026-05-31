@@ -48,7 +48,7 @@ function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isCalendarModalOpen, setIsCalendarModalOpen] = useState(false);
-  const [isDashboardModalOpen, setIsDashboardModalOpen] = useState(false);
+  const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [maxWeeklyStats, setMaxWeeklyStats] = useState({
     points: 450,
     date: '2026-05-15'
@@ -280,18 +280,18 @@ function App() {
           </div>
 
           <nav className="nav-links">
-            <a className={`nav-link`} onClick={() => setIsDashboardModalOpen(true)} style={{ cursor: 'pointer' }}>
+            <button className="nav-link" onClick={() => setIsTaskModalOpen(true)}>
               <Icons.Home /> Tasks
-            </a>
-            <a className={`nav-link ${activeTab === 'dashboard' ? 'active' : ''}`} onClick={() => setActiveTab('tasks')}>
+            </button>
+            <button className={`nav-link ${activeTab === 'dashboard' ? 'active' : ''}`} onClick={() => setActiveTab('tasks')}>
               <Icons.CheckSquare /> Dashboard
-            </a>
-            <a className={`nav-link`} onClick={() => setIsCalendarModalOpen(true)} style={{ cursor: 'pointer' }}>
+            </button>
+            <button className="nav-link" onClick={() => setIsCalendarModalOpen(true)}>
               <Icons.Calendar /> Calendar
-            </a>
-            <a className={`nav-link ${activeTab === 'settings' ? 'active' : ''}`} onClick={() => setActiveTab('settings')}>
+            </button>
+            <button className={`nav-link ${activeTab === 'settings' ? 'active' : ''}`} onClick={() => setActiveTab('settings')}>
               <Icons.Settings /> Settings
-            </a>
+            </button>
           </nav>
         </aside>
 

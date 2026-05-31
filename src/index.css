@@ -139,6 +139,11 @@ h1, h2, h3, h4, h5, h6 {
   transition: all 0.3s ease;
   cursor: pointer;
   border: 1px solid transparent;
+  background: transparent;
+  font-family: var(--font-body);
+  font-size: 1rem;
+  width: 100%;
+  text-align: left;
 }
 
 .nav-link:hover, .nav-link.active {
