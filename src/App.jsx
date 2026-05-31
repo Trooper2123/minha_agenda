@@ -281,10 +281,10 @@ function App() {
 
           <nav className="nav-links">
             <a className={`nav-link`} onClick={() => setIsDashboardModalOpen(true)} style={{ cursor: 'pointer' }}>
-              <Icons.Home /> Dashboard
+              <Icons.Home /> Tasks
             </a>
-            <a className={`nav-link ${activeTab === 'tasks' ? 'active' : ''}`} onClick={() => setActiveTab('tasks')}>
-              <Icons.CheckSquare /> Tasks
+            <a className={`nav-link ${activeTab === 'dashboard' ? 'active' : ''}`} onClick={() => setActiveTab('tasks')}>
+              <Icons.CheckSquare /> Dashboard
             </a>
             <a className={`nav-link`} onClick={() => setIsCalendarModalOpen(true)} style={{ cursor: 'pointer' }}>
               <Icons.Calendar /> Calendar
