@@ -14,7 +14,9 @@ const Icons = {
   Clock: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>,
   Coffee: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1" /><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z" /><line x1="6" x2="6" y1="1" y2="4" /><line x1="10" x2="10" y1="1" y2="4" /><line x1="14" x2="14" y1="1" y2="4" /></svg>,
   Play: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="5 3 19 12 5 21 5 3" /></svg>,
-  Pause: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="4" height="16" x="6" y="4" /><rect width="4" height="16" x="14" y="4" /></svg>
+  Pause: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="4" height="16" x="6" y="4" /><rect width="4" height="16" x="14" y="4" /></svg>,
+  Menu: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="4" x2="20" y1="12" y2="12" /><line x1="4" x2="20" y1="6" y2="6" /><line x1="4" x2="20" y1="18" y2="18" /></svg>,
+  X: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" x2="6" y1="6" y2="18" /><line x1="6" x2="18" y1="6" y2="18" /></svg>
 };
 
 function App() {
@@ -49,6 +51,7 @@ function App() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isCalendarModalOpen, setIsCalendarModalOpen] = useState(false);
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [maxWeeklyStats, setMaxWeeklyStats] = useState({
     points: 450,
     date: '2026-05-15'
@@ -269,27 +272,46 @@ function App() {
       <div className="glow-orb orb-3"></div>
 
       <div className="app-container">
+        {/* Mobile Header */}
+        <header className="mobile-header">
+          <h1 className="title-glow" style={{ fontSize: '1.2rem', marginBottom: 0 }}>
+            <Icons.Moon />
+            Hallownest <span className="title-silksong" style={{ fontSize: '0.9rem', marginLeft: '0.25rem' }}>Planner</span>
+          </h1>
+          <button className="menu-toggle" onClick={() => setIsSidebarOpen(true)} aria-label="Open menu">
+            <Icons.Menu />
+          </button>
+        </header>
+
+        {/* Sidebar Backdrop Overlay */}
+        <div className={`sidebar-overlay ${isSidebarOpen ? 'active' : ''}`} onClick={() => setIsSidebarOpen(false)}></div>
+
         {/* Sidebar */}
-        <aside className="sidebar">
-          <div>
-            <h1 className="title-glow" style={{ marginBottom: '0.5rem' }}>
-              <Icons.Moon />
-              Hallownest
-            </h1>
-            <h2 className="title-silksong" style={{ fontSize: '1rem', marginLeft: '2.5rem' }}>Planner</h2>
+        <aside className={`sidebar ${isSidebarOpen ? 'open' : ''}`}>
+          <div className="sidebar-header">
+            <div>
+              <h1 className="title-glow" style={{ marginBottom: '0.5rem' }}>
+                <Icons.Moon />
+                Hallownest
+              </h1>
+              <h2 className="title-silksong" style={{ fontSize: '1rem', marginLeft: '2.5rem' }}>Planner</h2>
+            </div>
+            <button className="sidebar-close" onClick={() => setIsSidebarOpen(false)} aria-label="Close menu">
+              <Icons.X />
+            </button>
           </div>
 
           <nav className="nav-links">
-            <button className="nav-link" onClick={() => setIsTaskModalOpen(true)}>
+            <button className="nav-link" onClick={() => { setIsTaskModalOpen(true); setIsSidebarOpen(false); }}>
               <Icons.Home /> Tasks
             </button>
-            <button className={`nav-link ${activeTab === 'dashboard' ? 'active' : ''}`} onClick={() => setActiveTab('tasks')}>
+            <button className={`nav-link ${activeTab === 'dashboard' ? 'active' : ''}`} onClick={() => { setActiveTab('dashboard'); setIsSidebarOpen(false); }}>
               <Icons.CheckSquare /> Dashboard
             </button>
-            <button className="nav-link" onClick={() => setIsCalendarModalOpen(true)}>
+            <button className="nav-link" onClick={() => { setIsCalendarModalOpen(true); setIsSidebarOpen(false); }}>
               <Icons.Calendar /> Calendar
             </button>
-            <button className={`nav-link ${activeTab === 'settings' ? 'active' : ''}`} onClick={() => setActiveTab('settings')}>
+            <button className={`nav-link ${activeTab === 'settings' ? 'active' : ''}`} onClick={() => { setActiveTab('settings'); setIsSidebarOpen(false); }}>
               <Icons.Settings /> Settings
             </button>
           </nav>
@@ -297,7 +319,7 @@ function App() {
 
         {/* Main Content */}
         <main className="main-content">
-          <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <header className="page-header">
             <div>
               <h2 style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>Greetings, Traveler</h2>
               <p style={{ color: 'var(--text-muted)' }}>Here is your schedule for this cycle.</p>
@@ -308,7 +330,7 @@ function App() {
           </header>
 
           {activeTab === 'settings' ? (
-            <div className="glass-panel" style={{ padding: '2.5rem', maxWidth: '700px', margin: '2rem auto' }}>
+            <div className="glass-panel settings-panel">
               <div className="card-header" style={{ marginBottom: '2rem' }}>
                 <h3 className="card-title" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1.5rem' }}>
                   <Icons.Settings /> Configurações
@@ -590,7 +612,7 @@ function App() {
               <button className="btn" style={{ border: 'none', padding: '0.5rem' }} onClick={() => setIsCalendarModalOpen(false)}>✕</button>
             </div>
 
-            <div className="calendar-grid" style={{ gridTemplateColumns: 'repeat(7, 1fr)', gap: '1rem', marginTop: '2rem' }}>
+            <div className="modal-calendar-grid">
               {days.map((day, idx) => (
                 <div key={`${day}-${idx}`} className="calendar-day-header" style={{ fontSize: '1rem' }}>{day}</div>
               ))}
@@ -605,19 +627,16 @@ function App() {
                 return (
                   <div
                     key={date}
-                    className={`calendar-day ${date === currentDay ? 'active' : ''}`}
-                    style={{ position: 'relative', display: 'flex', flexDirection: 'column', gap: '2px', fontSize: '1.2rem', padding: '10px' }}
+                    className={`modal-calendar-day ${date === currentDay ? 'active' : ''}`}
                   >
                     {date}
                     {tasksOnDate.length > 0 && (
-                      <div style={{ display: 'flex', gap: '4px', position: 'absolute', bottom: '8px' }}>
+                      <div className="modal-calendar-dots">
                         {tasksOnDate.map(t => (
                           <div
                             key={t.id}
+                            className="calendar-dot"
                             style={{
-                              width: '8px',
-                              height: '8px',
-                              borderRadius: '50%',
                               background: `var(--accent-${t.badge})`,
                               boxShadow: `0 0 5px var(--accent-glow-${t.badge})`
                             }}
