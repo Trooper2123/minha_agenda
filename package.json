@@ -6,8 +6,9 @@
   "homepage": "https://github.com/Trooper2123/minha_agenda/",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "npx vite build",
     "lint": "eslint .",
+    "test": "npx vitest run",
     "preview": "vite preview",
     "predeploy": "npm run build"
   },
